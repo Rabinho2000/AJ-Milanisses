@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Milão AJ Planner</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Sora:wght@700;800&display=swap');
+    :root{--bg:#f2f1ec;--paper:#fffef8;--line:#dedacf;--ink:#1f251f;--muted:#5e665d;--accent:#0f6b52;--accent-2:#d65f2d;--pill:#edf2ed}
+    *{box-sizing:border-box}
+    body{
+      margin:0;color:var(--ink);font-family:Manrope,Segoe UI,Roboto,Arial,sans-serif;
+      background:
+        radial-gradient(1200px 600px at -10% -20%, rgba(214,95,45,.16), transparent 60%),
+        radial-gradient(900px 560px at 110% -20%, rgba(15,107,82,.17), transparent 55%),
+        linear-gradient(180deg, #f5f2ea 0%, #f2f1ec 35%, #ecebe5 100%);
+      background-attachment:fixed;
+    }
+    a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+    .wrap{max-width:1100px;margin:0 auto;padding:14px}
+    .card,.hero{
+      background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,254,248,.96));
+      border:1px solid var(--line);border-radius:18px;
+      box-shadow:0 20px 45px rgba(34,38,32,.08), 0 2px 0 rgba(255,255,255,.75) inset;
+      backdrop-filter: blur(6px);
+    }
+    .hero{padding:16px;position:sticky;top:8px;z-index:5}.card{padding:14px}
+    h1,h2,h3{margin:.2rem 0 .5rem;line-height:1.1}
+    h1,h2{font-family:Sora,Manrope,Segoe UI,sans-serif;letter-spacing:-.02em}
+    p{margin:.25rem 0;color:var(--muted)} .small{font-size:.84rem;color:var(--muted)}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+    .tab-btn{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg,#fff,#f7f4ec);
+      border-radius:999px;padding:.52rem .95rem;font-weight:800;cursor:pointer;
+      transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+    .tab-btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.08)}
+    .tab-btn.active{background:linear-gradient(135deg,var(--accent),#2b8f72);color:#fff;border-color:#0f5c47;box-shadow:0 8px 20px rgba(15,107,82,.35)}
+    .tab-panel.hidden{display:none!important}
+    .row{display:grid;grid-template-columns:1.35fr .65fr;gap:14px;margin-top:14px}
+    .col{display:flex;flex-direction:column;gap:14px}.sticky{position:sticky;top:92px;display:flex;flex-direction:column;gap:14px}
+    .day{border-left:6px solid var(--accent);position:relative;overflow:hidden}
+    .aj{position:absolute;font-weight:900;color:rgba(15,107,82,.14);user-select:none;pointer-events:none}
+    .aj.s1{top:4px;right:8px;font-size:1.4rem;transform:rotate(-8deg)} .aj.s2{bottom:8px;left:8px;font-size:1.2rem;transform:rotate(10deg)} .aj.s3{top:46px;left:42%;font-size:1.8rem;transform:rotate(-11deg)}
+    .map{border:1px dashed #cfd5cc;border-radius:12px;padding:8px;background:linear-gradient(180deg,#fffef8,#f7f6ef);position:relative;overflow:hidden;margin-bottom:8px}.map svg{width:100%;height:170px;display:block}
+    .opt{border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff;transition:box-shadow .2s ease, transform .2s ease, border-color .2s ease}
+    .opt:hover{transform:translateY(-1px);box-shadow:0 10px 20px rgba(0,0,0,.06)}
+    .opt.selected{outline:3px solid rgba(15,107,82,.2);border-color:#9ac9b9}
+    .topline{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+    .pill{border:1px solid #d8e1d7;background:var(--pill);border-radius:999px;padding:.15rem .45rem;font-size:.78rem}.score{font-weight:800}
+    .controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    button{
+      border:1px solid var(--line);background:#fff;border-radius:11px;padding:.55rem .8rem;font-weight:800;cursor:pointer;
+      transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+    button:hover{transform:translateY(-1px);box-shadow:0 8px 16px rgba(0,0,0,.07)}
+    .primary{background:linear-gradient(135deg,var(--accent),#2b8f72);color:#fff;border-color:#0f5c47}
+    .choice-btn{border-color:#b8d8cc;background:#edf8f3}
+    .choice-btn.active{background:#d8efe5;border-color:#7cb6a2;color:#0f5c47}
+    .vote-chip{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:0 8px;border-radius:999px;border:1px solid #d2dbd1;background:#fff;font-weight:800}
+    input,textarea,select{
+      width:100%;border:1px solid var(--line);border-radius:11px;padding:.65rem .7rem;background:#fff;color:var(--ink);
+      box-shadow:0 1px 0 rgba(255,255,255,.8) inset;
+    }
+    input:focus,textarea:focus,select:focus{outline:none;border-color:#7cb6a2;box-shadow:0 0 0 3px rgba(124,182,162,.25)}
+    textarea{min-height:90px;resize:vertical}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .line{display:flex;justify-content:space-between;gap:10px;padding:.35rem 0;border-bottom:1px dashed var(--line)}
+    .rank{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px;background:#fff}
+    .link-list,.idea-list,.discussion-list{display:grid;gap:8px;margin-top:8px}.link-item,.idea-item,.comment-item{display:block;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff}
+    .link-item{display:flex;justify-content:space-between;gap:8px;align-items:center}
+    .phrase-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+    .phrase-pill{border:1px dashed #c2d8cf;background:linear-gradient(180deg,#eff8f4,#f7fbf9);border-radius:10px;padding:8px 10px;font-size:.84rem;color:#2f5f4f}
+    .phrase-inline{border-left:3px solid #9cc7b8;padding-left:8px;margin-top:6px;font-style:italic}
+    .idea-box{border:1px dashed var(--line);border-radius:10px;padding:10px;background:#fcfcfa;margin-top:10px}
+    .comment-head{display:flex;justify-content:space-between;gap:10px;align-items:center}
+    .footer{text-align:center;color:var(--muted);padding:16px}
+    .gate{position:fixed;inset:0;background:rgba(255,255,255,.94);z-index:50;display:flex;align-items:center;justify-content:center;padding:18px}
+    .gateBox{max-width:620px;width:100%;background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;position:relative}.hidden{display:none!important}
+    @media (max-width:960px){.row,.grid2,.grid3{grid-template-columns:1fr}.sticky,.hero{position:static}}
+    @media (max-width:720px){
+      .wrap{padding:10px}
+      .hero,.card{padding:12px}
+      h1{font-size:1.22rem}
+      .tabs{overflow-x:auto;flex-wrap:nowrap;white-space:nowrap;padding-bottom:4px}
+      .tab-btn{flex:0 0 auto}
+      .topline,.link-item{flex-direction:column;align-items:flex-start}
+      .controls button{flex:1 1 100%;width:100%}
+      .phrase-strip{grid-template-columns:1fr}
+      .gateBox{padding:12px}
+      .map svg{height:145px}
+    }
+  </style>
+</head>
+<body>
+<div id="gate" class="gate">
+  <div class="gateBox">
+    <div class="aj s1">AJ AJ AJ</div>
+    <h2>Entrar no planner (simples tipo forms 😌)</h2>
+    <p>Meta o nome, depois aparece tudo. Sem nome não há votos.</p>
+    <div>
+      <label class="small">Nome / alcunha</label>
+      <input id="nameInput" placeholder="ex: Sérgio / AJ / Zé" maxlength="30" />
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+      <button class="primary" onclick="enterApp()">Entrar</button>
+      <button type="button" onclick="demoName()">Nome random burro</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <section class="hero">
+    <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap;position:relative">
+      <div>
+        <h1>Milão 4–6 Março — Planner burro mas útil (AJ)</h1>
+        <p>Escolha 1 opção por dia • links para mapa/insta • resultados • discussão</p>
+        <div class="controls" style="margin-top:8px">
+          <button id="notifBtn" onclick="enableNotifications()">Ativar notificações</button>
+          <span id="notifStatus" class="small"></span>
+        </div>
+      </div>
+      <div style="text-align:right"><div class="small">A votar agora</div><div id="currentUser" style="font-weight:900;font-size:1.2rem">—</div></div>
+    </div>
+    <div class="grid3" style="margin-top:10px">
+      <div class="card" style="padding:10px"><div class="small">4 março</div><div>leve</div></div>
+      <div class="card" style="padding:10px"><div class="small">5 março</div><div>erasmus / navigli</div></div>
+      <div class="card" style="padding:10px"><div class="small">6 março</div><div>crawl + final</div></div>
+    </div>
+    <div id="landingPhraseStrip" class="phrase-strip"></div>
+  </section>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="planner" onclick="switchTab('planner')">Planner</button>
+    <button class="tab-btn" data-tab="tonight" onclick="switchTab('tonight')">Tonight</button>
+    <button class="tab-btn" data-tab="expenses" onclick="switchTab('expenses')">Despesas</button>
+    <button class="tab-btn" data-tab="results" onclick="switchTab('results')">Resultados</button>
+    <button class="tab-btn" data-tab="discussion" onclick="switchTab('discussion')">Discussão</button>
+  </div>
+
+  <div id="tab-planner" class="tab-panel">
+    <div class="row">
+      <div class="col">
+        <section class="card day">
+          <div class="aj s1">AJ</div><div class="aj s2">AJ</div><div class="aj s3">AJ</div>
+          <h2>4 Março — leve</h2><p>Primeira noite. Aquecer e não torrar guito logo.</p>
+          <p class="small phrase-inline" id="quote_day_4"></p>
+          <div class="map"><div class="aj s1">AJ</div><svg viewBox="0 0 520 170"><path d="M25 125 C110 90,180 110,250 84 S390 46,495 64" stroke="#1f6fff" stroke-width="4" fill="none"/><circle cx="112" cy="104" r="7" fill="#0f9d58"/><text x="124" y="109" font-size="13">Brera-ish</text><circle cx="256" cy="84" r="7" fill="#f59e0b"/><text x="268" y="89" font-size="13">Centro</text><circle cx="392" cy="51" r="7" fill="#d93025"/><text x="404" y="56" font-size="13">MIB</text><text x="18" y="18" font-size="12" fill="#666">mapa burro</text></svg></div>
+          <div class="opt" data-id="d4_mib" data-day="4" data-budgetmin="30" data-title="Jantar simples + MIB" data-area="Centro → MIB" data-transport="1 deslocação" data-links='[{"label":"MIB no mapa","url":"https://maps.google.com/?q=MIB%20Milano"},{"label":"Instagram MIB","url":"https://www.instagram.com/mibmilano/"}]'>
+            <div class="topline"><div><strong>Opção A — Jantar + MIB</strong><div class="meta"><span class="pill">€€</span><span class="pill">internacional</span><span class="pill">fácil</span></div></div><div class="score">Votos <span class="scoreVal">0</span></div></div>
+            <p>Boa para começar. Se tiver fraco, saem cedo.</p>
+            <div class="controls"><button class="choice-btn" id="btn_d4_mib" onclick="chooseOption('4','d4_mib')">Escolher esta</button><span class="vote-chip" id="chip_d4_mib">0</span><button onclick="pick('d4_mib')">Escolha pessoal</button><button onclick="toggleLinks('d4_mib')">Ver links</button></div>
+            <div id="links_d4_mib" class="link-list hidden"></div>
+          </div>
+          <div class="opt" data-id="d4_brera" data-day="4" data-budgetmin="20" data-title="Brera + passeio + Colonne soft" data-area="Brera / Centro / Colonne" data-transport="quase tudo a pé" data-links='[{"label":"Brera no mapa","url":"https://maps.google.com/?q=Brera%20Milan"},{"label":"Colonne no mapa","url":"https://maps.google.com/?q=Colonne%20di%20San%20Lorenzo%20Milano"}]' style="margin-top:10px">
+            <div class="topline"><div><strong>Opção B — Passeio bonito e leve</strong><div class="meta"><span class="pill">€</span><span class="pill">baixo risco</span><span class="pill">conversa</span></div></div><div class="score">Votos <span class="scoreVal">0</span></div></div>
+            <p>Plano anti-exagero. Bom se houver malta cansada.</p>
+            <div class="controls"><button class="choice-btn" id="btn_d4_brera" onclick="chooseOption('4','d4_brera')">Escolher esta</button><span class="vote-chip" id="chip_d4_brera">0</span><button onclick="pick('d4_brera')">Escolha pessoal</button><button onclick="toggleLinks('d4_brera')">Ver links</button></div>
+            <div id="links_d4_brera" class="link-list hidden"></div>
+          </div>
+          <div class="idea-box"><div class="small">Adicionar ideia extra para o dia 4</div><div class="grid2" style="margin-top:6px"><input id="idea_title_4" placeholder="Título da ideia" /><input id="idea_link_4" placeholder="Link maps/insta/evento" /></div><div class="controls" style="margin-top:8px"><button onclick="addIdea('4')">Adicionar ideia</button></div><div id="ideas_4" class="idea-list"></div></div>
+        </section>
+
+        <section class="card day">
+          <div class="aj s1">AJ</div><div class="aj s2">AJ</div><div class="aj s3">AJ</div>
+          <h2>5 Março — Erasmus vibes</h2><p>Plano inteligente: Navigli e ficar lá.</p>
+          <p class="small phrase-inline" id="quote_day_5"></p>
+          <div class="map"><svg viewBox="0 0 520 170"><path d="M20 78 C100 65,170 88,250 82 S390 47,500 60" stroke="#0f9d58" stroke-width="5" fill="none"/><circle cx="155" cy="87" r="7" fill="#f59e0b"/><text x="166" y="92" font-size="13">Darsena</text><circle cx="265" cy="82" r="7" fill="#d93025"/><text x="276" y="87" font-size="13">King's Pub</text><circle cx="405" cy="58" r="7" fill="#1f6fff"/><text x="416" y="63" font-size="13">Navigli</text><text x="18" y="18" font-size="12" fill="#666">mapa burro</text></svg></div>
+          <div class="opt" data-id="d5_kings" data-day="5" data-budgetmin="25" data-title="King's Pub + Navigli" data-area="Navigli" data-transport="1 ida + a pé" data-links='[{"label":"King’s Pub no mapa","url":"https://maps.google.com/?q=King%27s%20Pub%20Navigli%20Milano"},{"label":"Navigli no mapa","url":"https://maps.google.com/?q=Navigli%20Milan"}]'>
+            <div class="topline"><div><strong>Opção A — King’s Pub + Navigli</strong><div class="meta"><span class="pill">€€</span><span class="pill">erasmus</span><span class="pill">melhor custo/vibe</span></div></div><div class="score">Votos <span class="scoreVal">0</span></div></div>
+            <p>Burro mas eficaz. Vão para Navigli e quase não mexem.</p>
+            <div class="controls"><button class="choice-btn" id="btn_d5_kings" onclick="chooseOption('5','d5_kings')">Escolher esta</button><span class="vote-chip" id="chip_d5_kings">0</span><button onclick="pick('d5_kings')">Escolha pessoal</button><button onclick="toggleLinks('d5_kings')">Ver links</button></div>
+            <div id="links_d5_kings" class="link-list hidden"></div>
+          </div>
+          <div class="opt" data-id="d5_kings_club" data-day="5" data-budgetmin="40" data-title="King's + The Club" data-area="Navigli + The Club" data-transport="1 mudança extra" data-links='[{"label":"The Club no mapa","url":"https://maps.google.com/?q=The%20Club%20Milano"},{"label":"Instagram The Club","url":"https://www.instagram.com/theclubmilano/"}]' style="margin-top:10px">
+            <div class="topline"><div><strong>Opção B — King’s + The Club</strong><div class="meta"><span class="pill">€€€</span><span class="pill">mais esforço</span><span class="pill">mais club</span></div></div><div class="score">Votos <span class="scoreVal">0</span></div></div>
+            <p>Boa se estiverem cheios de energia. Mais fila/custo.</p>
+            <div class="controls"><button class="choice-btn" id="btn_d5_kings_club" onclick="chooseOption('5','d5_kings_club')">Escolher esta</button><span class="vote-chip" id="chip_d5_kings_club">0</span><button onclick="pick('d5_kings_club')">Escolha pessoal</button><button onclick="toggleLinks('d5_kings_club')">Ver links</button></div>
+            <div id="links_d5_kings_club" class="link-list hidden"></div>
+          </div>
+          <div class="idea-box"><div class="small">Adicionar ideia extra para o dia 5</div><div class="grid2" style="margin-top:6px"><input id="idea_title_5" placeholder="Título da ideia" /><input id="idea_link_5" placeholder="Link maps/insta/evento" /></div><div class="controls" style="margin-top:8px"><button onclick="addIdea('5')">Adicionar ideia</button></div><div id="ideas_5" class="idea-list"></div></div>
+        </section>
+
+        <section class="card day">
+          <div class="aj s1">AJ</div><div class="aj s2">AJ</div><div class="aj s3">AJ</div>
+          <h2>6 Março — Bar crawl sério</h2><p>A pé primeiro. Táxi split só no fim.</p>
+          <p class="small phrase-inline" id="quote_day_6"></p>
+          <div class="map"><svg viewBox="0 0 520 170"><path d="M50 35 L120 55 L180 82 L245 110 L315 134 L390 146 L485 154" stroke="#f59e0b" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="58" cy="35" r="7" fill="#d93025"/><text x="70" y="40" font-size="13">Colonne</text><circle cx="181" cy="82" r="7" fill="#1f6fff"/><text x="192" y="87" font-size="13">Ticinese</text><circle cx="315" cy="134" r="7" fill="#0f9d58"/><text x="326" y="139" font-size="13">Darsena</text><circle cx="392" cy="146" r="7" fill="#f59e0b"/><text x="404" y="151" font-size="13">Navigli</text><circle cx="474" cy="72" r="7" fill="#d93025"/><text x="412" y="66" font-size="13">Alcatraz</text><text x="18" y="18" font-size="12" fill="#666">mapa burro</text></svg></div>
+          <div class="opt" data-id="d6_diy_alcatraz" data-day="6" data-budgetmin="40" data-title="Crawl DIY + Alcatraz" data-area="Ticinese / Darsena / Navigli + Alcatraz" data-transport="a pé + táxi split no fim" data-links='[{"label":"Porta Ticinese no mapa","url":"https://maps.google.com/?q=Porta%20Ticinese%20Milano"},{"label":"Darsena no mapa","url":"https://maps.google.com/?q=Darsena%20Milano"},{"label":"Navigli no mapa","url":"https://maps.google.com/?q=Navigli%20Milan"},{"label":"Alcatraz no mapa","url":"https://maps.google.com/?q=Alcatraz%20Milano"},{"label":"Instagram Alcatraz","url":"https://www.instagram.com/alcatrazmilano/"}]'>
+            <div class="topline"><div><strong>Opção A — Crawl DIY + Alcatraz</strong><div class="meta"><span class="pill">€€€</span><span class="pill">sexta forte</span><span class="pill">grupo 7 ok</span></div></div><div class="score">Votos <span class="scoreVal">0</span></div></div>
+            <p>Melhor relação diversão/controlo.</p>
+            <div class="controls"><button class="choice-btn" id="btn_d6_diy_alcatraz" onclick="chooseOption('6','d6_diy_alcatraz')">Escolher esta</button><span class="vote-chip" id="chip_d6_diy_alcatraz">0</span><button onclick="pick('d6_diy_alcatraz')">Escolha pessoal</button><button onclick="toggleLinks('d6_diy_alcatraz')">Ver links</button></div>
+            <div id="links_d6_diy_alcatraz" class="link-list hidden"></div>
+          </div>
+          <div class="opt" data-id="d6_paidcrawl" data-day="6" data-budgetmin="35" data-title="Crawl guiado em Navigli" data-area="Navigli" data-transport="meeting point fixo" data-links='[{"label":"Navigli no mapa","url":"https://maps.google.com/?q=Navigli%20Milan"},{"label":"Pesquisar pub crawl em Milão","url":"https://www.google.com/search?q=pub+crawl+milan+navigli"}]' style="margin-top:10px">
+            <div class="topline"><div><strong>Opção B — Crawl guiado</strong><div class="meta"><span class="pill">€€</span><span class="pill">menos trabalho</span><span class="pill">turístico</span></div></div><div class="score">Votos <span class="scoreVal">0</span></div></div>
+            <p>Serve se ninguém quiser liderar.</p>
+            <div class="controls"><button class="choice-btn" id="btn_d6_paidcrawl" onclick="chooseOption('6','d6_paidcrawl')">Escolher esta</button><span class="vote-chip" id="chip_d6_paidcrawl">0</span><button onclick="pick('d6_paidcrawl')">Escolha pessoal</button><button onclick="toggleLinks('d6_paidcrawl')">Ver links</button></div>
+            <div id="links_d6_paidcrawl" class="link-list hidden"></div>
+          </div>
+          <div class="idea-box"><div class="small">Adicionar ideia extra para o dia 6</div><div class="grid2" style="margin-top:6px"><input id="idea_title_6" placeholder="Título da ideia" /><input id="idea_link_6" placeholder="Link maps/insta/evento" /></div><div class="controls" style="margin-top:8px"><button onclick="addIdea('6')">Adicionar ideia</button></div><div id="ideas_6" class="idea-list"></div></div>
+        </section>
+
+        <section class="card">
+          <h2>Logística (simples)</h2>
+          <div class="grid2"><div><h3>Antes de sair (5 min)</h3><ol><li>Ver top votado do dia</li><li>Ponto de encontro</li><li>Navigator + contas</li><li>Plano B</li></ol></div><div><h3>Durante a noite</h3><ol><li>Fila &gt; 15 min = mexer</li><li>Ficar na mesma zona</li><li>Táxi split só no fim</li><li>Não complicar 😌</li></ol></div></div>
+          <div class="grid3"><div><label class="small">Ponto de encontro</label><input id="meetingPoint" /></div><div><label class="small">Navigator</label><input id="navigator" /></div><div><label class="small">Budget alvo (3 dias/pessoa)</label><input id="budget" /></div></div>
+          <div style="margin-top:10px"><label class="small">Notas rápidas</label><textarea id="notes"></textarea></div>
+          <div class="controls"><button class="primary" onclick="saveNotes()">Guardar</button><button onclick="exportTxt()">Exportar resumo TXT</button><button onclick="exportJson()">Exportar votos JSON</button><button onclick="importJson()">Importar votos JSON</button><button onclick="nextPerson()">Próxima pessoa a votar</button><button onclick="resetAll()">Reset tudo</button></div>
+        </section>
+      </div>
+
+      <aside class="sticky">
+        <section class="card"><h2>Resumo live</h2><div class="line"><span>Votantes</span><strong id="voters">0</strong></div><div class="line"><span>Votos totais</span><strong id="votes">0</strong></div><div class="line"><span>Escolhas pessoais</span><strong id="picks">0</strong></div></section>
+        <section class="card"><h2>Top por dia</h2><div id="tops"></div></section>
+        <section class="card"><h2>Plano final sugerido</h2><div id="finalPlan"></div><p class="small">Empate = opção mais barata.</p></section>
+      </aside>
+    </div>
+  </div>
+
+  <div id="tab-tonight" class="tab-panel hidden">
+    <section class="card" style="margin-top:14px">
+      <h2>Tonight Mode</h2>
+      <p>Modo rápido para usar já na rua: plano e check-in.</p>
+      <div class="grid2">
+        <div>
+          <label class="small">Dia</label>
+          <select id="tonightDaySelect" onchange="setTonightDay(this.value)">
+            <option value="4">Dia 4</option>
+            <option value="5">Dia 5</option>
+            <option value="6">Dia 6</option>
+          </select>
+        </div>
+        <div class="rank" style="margin-top:0">
+          <div class="small">Atalho</div>
+          <div>Check-in + plano do dia</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:14px">
+      <h2>Plano da noite</h2>
+      <div id="tonightPlanCard" class="rank"></div>
+      <div id="tonightLinks" class="link-list"></div>
+    </section>
+
+    <section class="card" style="margin-top:14px">
+      <h2>Check-in</h2>
+      <div class="controls">
+        <button onclick="setCheckIn('going')">Estou a caminho</button>
+        <button onclick="setCheckIn('arrived')">Cheguei</button>
+        <button onclick="setCheckIn('skip')">Hoje não vou</button>
+        <button onclick="setCheckIn('clear')">Limpar estado</button>
+      </div>
+      <div id="checkinSummary" class="rank"></div>
+      <div id="checkinList" class="discussion-list"></div>
+    </section>
+  </div>
+
+  <div id="tab-expenses" class="tab-panel hidden">
+    <section class="card" style="margin-top:14px">
+      <h2>Despesas</h2>
+      <p>Registo rápido de gastos e saldo por pessoa.</p>
+      <div class="grid3">
+        <div>
+          <label class="small">Dia</label>
+          <select id="expenseDaySelect" onchange="setExpenseDay(this.value)">
+            <option value="4">Dia 4</option>
+            <option value="5">Dia 5</option>
+            <option value="6">Dia 6</option>
+          </select>
+        </div>
+        <div>
+          <label class="small">Quem pagou</label>
+          <input id="expensePayer" placeholder="ex: AJ" />
+        </div>
+        <div>
+          <label class="small">Montante (€)</label>
+          <input id="expenseAmount" type="number" min="0" step="0.01" placeholder="ex: 18.50" />
+        </div>
+      </div>
+      <div style="margin-top:10px">
+        <label class="small">Descrição</label>
+        <input id="expenseLabel" placeholder="ex: Uber para Navigli / round no bar" />
+      </div>
+      <div class="controls">
+        <button class="primary" onclick="addExpense()">Adicionar despesa</button>
+      </div>
+      <div id="expenseSummary" class="rank"></div>
+      <div id="expenseSettlement" class="rank"></div>
+      <div id="expenseList" class="discussion-list"></div>
+    </section>
+    <section class="card" style="margin-top:14px">
+      <h2>Participantes</h2>
+      <p class="small">Remover testes limpa votos, check-ins e despesas desse nome.</p>
+      <div id="participantsList" class="discussion-list"></div>
+    </section>
+  </div>
+
+  <div id="tab-results" class="tab-panel hidden"><section class="card" style="margin-top:14px"><h2>Resultados de votação</h2><p>Uma escolha por pessoa em cada dia.</p><div id="resultsTables"></div></section></div>
+
+  <div id="tab-discussion" class="tab-panel hidden">
+    <section class="card" style="margin-top:14px">
+      <h2>Discussão</h2>
+      <p>Mensagens rápidas para alinhar o grupo.</p>
+      <div class="grid2"><div><label class="small">Tema / dia</label><select id="discussionTopic"><option value="geral">Geral</option><option value="dia4">Dia 4</option><option value="dia5">Dia 5</option><option value="dia6">Dia 6</option><option value="logistica">Logística</option></select></div><div><label class="small">Mensagem curta</label><input id="discussionText" placeholder="ex: se houver fila vamos para plano B" /></div></div>
+      <div class="controls"><button class="primary" onclick="addDiscussionComment()">Adicionar mensagem</button><button onclick="clearDiscussion()">Limpar discussão</button></div>
+      <div id="discussionList" class="discussion-list"></div>
+    </section>
+  </div>
+
+  <div class="footer">AJ AJ AJ • tabs: planner / tonight / despesas / resultados / discussão</div>
+</div>
+
+<script>
+const KEY='milao_aj_planner_clean_v1';
+const PHRASES_CACHE_KEY='milao_aj_phrases_cache_v1';
+const VALID_DAYS=['4','5','6'];
+const VALID_TOPICS=new Set(['geral','dia4','dia5','dia6','logistica']);
+const VALID_TABS=new Set(['planner','tonight','expenses','results','discussion']);
+const VALID_CHECKIN_STATUS=new Set(['going','arrived','skip']);
+const FALLBACK_PHRASES=[
+  'AJ tem a palavra.',
+  'Sem fila ou sempre a andar.',
+  'Grupo muito calmo btw.',
+  'Amen e siga.',
+  'Roteiro oficial da seita AJ.',
+  'Hoje nao ha duvida, ha barulho.'
+];
+let currentUser = null;
+let landingPhrases = [];
+let notifTimer = null;
+let state = loadState();
+function defaultState(){ return { users:{}, notes:{meetingPoint:'', navigator:'', budget:'', notes:''}, ideas:{'4':[], '5':[], '6':[]}, discussion:[], checkins:{'4':{},'5':{},'6':{}}, expenses:[], notificationMeta:{lastPhraseHour:''}, tonightDay:'4', expenseDay:'4', activeTab:'planner' }; }
+function asObj(v){ return v && typeof v==='object' && !Array.isArray(v) ? v : {}; }
+function asArr(v){ return Array.isArray(v) ? v : []; }
+function normalizeText(v,max=300){ return String(v??'').trim().slice(0,max); }
+function normalizeName(v){ return normalizeText(v,30).replace(/\s+/g,' '); }
+function normalizeTab(v){ return VALID_TABS.has(v) ? v : 'planner'; }
+function isValidDay(day){ return VALID_DAYS.includes(String(day)); }
+function getOptionMapByDay(){ const map={'4':new Set(),'5':new Set(),'6':new Set()}; document.querySelectorAll('.opt[data-day][data-id]').forEach(el=>{ const day=String(el.dataset.day||''); const id=String(el.dataset.id||''); if(isValidDay(day) && id) map[day].add(id); }); return map; }
+function getAllOptionIds(){ const set=new Set(); document.querySelectorAll('.opt[data-id]').forEach(el=>{ const id=String(el.dataset.id||''); if(id) set.add(id); }); return set; }
+function sanitizeUrl(raw){ const s=String(raw??'').trim(); if(!s) return ''; try{ const u=new URL(s, window.location.href); return (u.protocol==='http:' || u.protocol==='https:') ? u.href : ''; }catch(e){ return ''; } }
+function normalizeUsers(rawUsers){ const users={}; const optionMap=getOptionMapByDay(); const allOptions=getAllOptionIds(); for(const [rawName,rawData] of Object.entries(asObj(rawUsers))){ const name=normalizeName(rawName); if(!name) continue; const data=asObj(rawData); const choices={}; for(const [day,id] of Object.entries(asObj(data.choices))){ if(isValidDay(day) && typeof id==='string' && optionMap[day].has(id)) choices[day]=id; } const picks={}; for(const id of Object.keys(asObj(data.picks))){ if(allOptions.has(id) && data.picks[id]) picks[id]=true; } users[name]={choices,picks}; } return users; }
+function normalizeIdeas(rawIdeas){ const out={'4':[],'5':[],'6':[]}; for(const day of VALID_DAYS){ out[day]=asArr(asObj(rawIdeas)[day]).map(item=>{ const i=asObj(item); const title=normalizeText(i.title,80); const link=sanitizeUrl(i.link); if(!title) return null; return { id: normalizeText(i.id,60) || ('i_'+Date.now()+'_'+Math.floor(Math.random()*999)), title, link }; }).filter(Boolean); } return out; }
+function normalizeDiscussion(rawDiscussion){ return asArr(rawDiscussion).map(item=>{ const i=asObj(item); const topic=VALID_TOPICS.has(i.topic) ? i.topic : 'geral'; const user=normalizeName(i.user); const text=normalizeText(i.text,300); const ts=normalizeText(i.ts,50); if(!text) return null; return { id: normalizeText(i.id,60) || ('c_'+Date.now()), user: user || 'Anónimo', topic, text, ts: ts || new Date().toLocaleString('pt-PT') }; }).filter(Boolean).slice(0,500); }
+function normalizeNotes(rawNotes){ const n=asObj(rawNotes); return { meetingPoint:normalizeText(n.meetingPoint,100), navigator:normalizeText(n.navigator,100), budget:normalizeText(n.budget,60), notes:normalizeText(n.notes,2000) }; }
+function normalizeCheckins(rawCheckins, users){ const out={'4':{},'5':{},'6':{}}; const names=new Set(Object.keys(users||{})); for(const day of VALID_DAYS){ const dayMap=asObj(asObj(rawCheckins)[day]); for(const [rawName,rawStatus] of Object.entries(dayMap)){ const name=normalizeName(rawName); const status=String(rawStatus||''); if(name && names.has(name) && VALID_CHECKIN_STATUS.has(status)) out[day][name]=status; } } return out; }
+function normalizeExpenses(rawExpenses){ return asArr(rawExpenses).map(item=>{ const i=asObj(item); const day=isValidDay(i.day) ? String(i.day) : '4'; const payer=normalizeName(i.payer) || 'Anónimo'; const label=normalizeText(i.label,120); const amount=Number(String(i.amount??'').replace(',','.')); if(!label || !Number.isFinite(amount) || amount<=0) return null; return { id: normalizeText(i.id,60) || ('e_'+Date.now()+'_'+Math.floor(Math.random()*999)), day, payer, label, amount: Math.round(amount*100)/100, ts: normalizeText(i.ts,50) || new Date().toLocaleString('pt-PT') }; }).filter(Boolean).slice(0,3000); }
+function normalizeState(rawState){ const s=asObj(rawState); const users=normalizeUsers(s.users); return { users, notes: normalizeNotes(s.notes), ideas: normalizeIdeas(s.ideas), discussion: normalizeDiscussion(s.discussion), checkins: normalizeCheckins(s.checkins, users), expenses: normalizeExpenses(s.expenses), notificationMeta:{ lastPhraseHour: normalizeText(asObj(s.notificationMeta).lastPhraseHour,40) }, tonightDay: isValidDay(s.tonightDay) ? String(s.tonightDay) : '4', expenseDay: isValidDay(s.expenseDay) ? String(s.expenseDay) : (isValidDay(s.tonightDay) ? String(s.tonightDay) : '4'), activeTab: normalizeTab(s.activeTab) }; }
+function loadState(){ try{ const raw=localStorage.getItem(KEY); if(!raw) return defaultState(); const parsed=JSON.parse(raw); const source=asObj(parsed.state || parsed); return normalizeState(source); }catch(e){ return defaultState(); } }
+function saveState(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+function ensureUser(name){ const n=normalizeName(name); if(!n) return false; if(!state.users[n]) state.users[n]={choices:{}, picks:{}}; return n; }
+function demoName(){ document.getElementById('nameInput').value='AJ_'+Math.floor(Math.random()*99); }
+function enterApp(){ const n=normalizeName(document.getElementById('nameInput').value); if(!n){ alert('Mete um nome.'); return; } currentUser=ensureUser(n); document.getElementById('currentUser').textContent=currentUser; document.getElementById('gate').classList.add('hidden'); hydrateNotes(); switchTab(state.activeTab||'planner'); renderAll(); saveState(); }
+function nextPerson(){ currentUser=null; document.getElementById('currentUser').textContent='—'; document.getElementById('nameInput').value=''; document.getElementById('gate').classList.remove('hidden'); document.getElementById('nameInput').focus(); }
+function chooseOption(day,id){ if(!currentUser){ alert('Mete nome primeiro.'); return; } if(!isValidDay(day) || !document.querySelector(`.opt[data-day="${day}"][data-id="${id}"]`)){ alert('Opção inválida.'); return; } ensureUser(currentUser); state.users[currentUser].choices[String(day)]=id; saveState(); renderAll(); }
+function pick(id){ if(!currentUser){ alert('Mete nome primeiro.'); return; } if(!document.querySelector(`.opt[data-id="${id}"]`)){ alert('Opção inválida.'); return; } ensureUser(currentUser); const p=state.users[currentUser].picks||(state.users[currentUser].picks={}); p[id]?delete p[id]:p[id]=true; saveState(); renderAll(); }
+function choiceVotesFor(id){ let c=0; for(const u of Object.values(state.users||{})){ if(Object.values(u.choices||{}).includes(id)) c++; } return c; }
+function votesCount(){ let c=0; for(const u of Object.values(state.users||{})) c+=Object.keys(u.choices||{}).length; return c; }
+function picksCount(){ let c=0; for(const u of Object.values(state.users||{})) c+=Object.keys(u.picks||{}).length; return c; }
+function getOptionsForDay(day){ return [...document.querySelectorAll(`.opt[data-day="${day}"]`)]; }
+function ranked(day){ const arr=getOptionsForDay(day).map(el=>({id:el.dataset.id,title:el.dataset.title,area:el.dataset.area,transport:el.dataset.transport,budgetmin:Number(el.dataset.budgetmin||999),votes:choiceVotesFor(el.dataset.id)})); arr.sort((a,b)=>(b.votes-a.votes)||(a.budgetmin-b.budgetmin)||a.title.localeCompare(b.title)); return arr; }
+function renderOptions(){ document.querySelectorAll('.opt').forEach(el=>{ const id=el.dataset.id, day=el.dataset.day, votes=choiceVotesFor(id); const scoreEl=el.querySelector('.scoreVal'); if(scoreEl) scoreEl.textContent=votes; const chip=document.getElementById('chip_'+id); if(chip) chip.textContent=votes; const btn=document.getElementById('btn_'+id); const chosen=!!(currentUser && state.users[currentUser] && state.users[currentUser].choices && state.users[currentUser].choices[day]===id); if(btn){ btn.classList.toggle('active', chosen); btn.textContent=chosen?'Escolhida ✅':'Escolher esta'; } const selected=!!(currentUser && state.users[currentUser] && state.users[currentUser].picks && state.users[currentUser].picks[id]); el.classList.toggle('selected', selected); }); }
+function toggleLinks(id){ const opt=document.querySelector(`.opt[data-id="${id}"]`); const box=document.getElementById('links_'+id); if(!opt||!box) return; if(!box.dataset.loaded){ box.innerHTML=''; let links=[]; try{ links=JSON.parse(opt.dataset.links||'[]'); }catch(e){} const validLinks=asArr(links).map(l=>({ label:normalizeText(asObj(l).label||'Link',60), url:sanitizeUrl(asObj(l).url) })).filter(l=>l.url); validLinks.forEach(l=>{ const d=document.createElement('div'); d.className='link-item'; const s=document.createElement('span'); s.textContent=l.label||'Link'; const a=document.createElement('a'); a.href=l.url; a.target='_blank'; a.rel='noopener noreferrer'; a.textContent='Abrir ↗'; d.appendChild(s); d.appendChild(a); box.appendChild(d); }); if(!validLinks.length){ const d=document.createElement('div'); d.className='link-item'; d.innerHTML='<span>Sem links</span>'; box.appendChild(d);} box.dataset.loaded='1'; } box.classList.toggle('hidden'); }
+function addIdea(day){ if(!isValidDay(day)){ alert('Dia inválido.'); return; } const t=document.getElementById('idea_title_'+day); const l=document.getElementById('idea_link_'+day); if(!t||!l) return; const title=normalizeText(t.value,80); const link=sanitizeUrl(l.value); if(!title){ alert('Mete um título para a ideia.'); return; } if((l.value||'').trim() && !link){ alert('Link inválido. Usa http/https.'); return; } state.ideas[day]=state.ideas[day]||[]; const duplicated=state.ideas[day].some(x=>String(x.title||'').toLowerCase()===title.toLowerCase()); if(duplicated){ alert('Já existe uma ideia com esse título nesse dia.'); return; } state.ideas[day].push({id:'i_'+Date.now()+'_'+Math.floor(Math.random()*999), title, link}); t.value=''; l.value=''; saveState(); renderIdeas(); }
+function removeIdea(day,id){ state.ideas[day]=(state.ideas[day]||[]).filter(x=>x.id!==id); saveState(); renderIdeas(); }
+function renderIdeas(){ ['4','5','6'].forEach(day=>{ const box=document.getElementById('ideas_'+day); if(!box) return; box.innerHTML=''; (state.ideas[day]||[]).forEach(item=>{ const div=document.createElement('div'); div.className='idea-item'; const top=document.createElement('div'); top.style.display='flex'; top.style.justifyContent='space-between'; top.style.gap='8px'; top.style.alignItems='center'; top.innerHTML=`<strong>${escapeHtml(item.title)}</strong>`; const rm=document.createElement('button'); rm.textContent='Remover'; rm.onclick=()=>removeIdea(day,item.id); top.appendChild(rm); div.appendChild(top); const meta=document.createElement('div'); meta.className='small'; meta.style.marginTop='6px'; if(item.link){ const a=document.createElement('a'); a.href=item.link; a.target='_blank'; a.rel='noopener noreferrer'; a.textContent='Abrir link ↗'; meta.appendChild(a); } else meta.textContent='sem link'; div.appendChild(meta); box.appendChild(div); }); }); }
+function saveNotes(){ state.notes=normalizeNotes({ meetingPoint:document.getElementById('meetingPoint').value, navigator:document.getElementById('navigator').value, budget:document.getElementById('budget').value, notes:document.getElementById('notes').value }); saveState(); alert('Guardado neste dispositivo.'); }
+function hydrateNotes(){ document.getElementById('meetingPoint').value=state.notes.meetingPoint||''; document.getElementById('navigator').value=state.notes.navigator||''; document.getElementById('budget').value=state.notes.budget||''; document.getElementById('notes').value=state.notes.notes||''; }
+function renderSidebar(){ document.getElementById('voters').textContent=Object.keys(state.users||{}).length; document.getElementById('votes').textContent=votesCount(); document.getElementById('picks').textContent=picksCount(); const tops=document.getElementById('tops'); tops.innerHTML=''; const final=document.getElementById('finalPlan'); final.innerHTML=''; [4,5,6].forEach(day=>{ const r=ranked(day); const t=r[0]; const d=document.createElement('div'); d.className='rank'; d.innerHTML=t?`<div><b>Dia ${day}</b> — ${escapeHtml(t.title)}</div><div class="small">${t.votes} votos • min ${t.budgetmin}€</div>`:`<div><b>Dia ${day}</b> — sem votos</div>`; tops.appendChild(d); const f=document.createElement('div'); f.style.marginBottom='10px'; f.innerHTML=t?`<div><b>Dia ${day}</b>: ${escapeHtml(t.title)}</div><div class="small">Zona: ${escapeHtml(t.area)} • Logística: ${escapeHtml(t.transport)}</div>`:`<div><b>Dia ${day}</b>: sem votos</div>`; final.appendChild(f); }); }
+function renderResultsTab(){ const wrap=document.getElementById('resultsTables'); if(!wrap) return; wrap.innerHTML=''; [4,5,6].forEach(day=>{ const card=document.createElement('div'); card.className='rank'; card.innerHTML=`<h3>Dia ${day}</h3>`; const rs=ranked(day); if(!rs.length) card.innerHTML+='<div class="small">Sem opções</div>'; rs.forEach((r,i)=>{ const line=document.createElement('div'); line.className='line'; line.innerHTML=`<span>${i+1}. ${escapeHtml(r.title)}</span><strong>${r.votes} votos</strong>`; card.appendChild(line); }); wrap.appendChild(card); }); }
+function addDiscussionComment(){ if(!currentUser){ alert('Mete nome primeiro.'); return; } const topicRaw=document.getElementById('discussionTopic').value; const topic=VALID_TOPICS.has(topicRaw) ? topicRaw : 'geral'; const text=normalizeText(document.getElementById('discussionText').value,300); if(!text){ alert('Escreve uma mensagem.'); return; } state.discussion.unshift({id:'c_'+Date.now(), user:currentUser, topic, text, ts:new Date().toLocaleString('pt-PT')}); document.getElementById('discussionText').value=''; saveState(); renderDiscussion(); pushNotification('Nova mensagem na discussão', `${currentUser}: ${text}`); }
+function clearDiscussion(){ if(!confirm('Limpar discussão deste dispositivo?')) return; state.discussion=[]; saveState(); renderDiscussion(); }
+function renderDiscussion(){ const box=document.getElementById('discussionList'); if(!box) return; box.innerHTML=''; if(!(state.discussion||[]).length){ box.innerHTML='<div class="small">Sem mensagens ainda.</div>'; return; } state.discussion.forEach(c=>{ const div=document.createElement('div'); div.className='comment-item'; div.innerHTML=`<div class="comment-head"><strong>${escapeHtml(c.user)}</strong><span class="pill">${escapeHtml(c.topic)}</span></div><div style="margin-top:6px">${escapeHtml(c.text)}</div><div class="small" style="margin-top:6px">${escapeHtml(c.ts)}</div>`; box.appendChild(div); }); }
+function parsePhrasesFromTxt(raw){ return String(raw||'').split(/\r?\n/).map(l=>l.trim()).filter(Boolean).filter(l=>!/^=+$/.test(l)).map(l=>l.replace(/^\d+\.\s*/,'')).filter(l=>l.length>6).filter(l=>!/FRASES\s+PARVAS/i.test(l)); }
+function randomPhrases(n){ const source=(landingPhrases&&landingPhrases.length)?landingPhrases:FALLBACK_PHRASES; const arr=[...source]; for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr.slice(0,Math.max(0,n)); }
+function renderLandingPhrases(){ const strip=document.getElementById('landingPhraseStrip'); const picks=randomPhrases(6); if(strip){ strip.innerHTML=''; picks.slice(0,3).forEach(t=>{ const d=document.createElement('div'); d.className='phrase-pill'; d.textContent=t; strip.appendChild(d); }); } ['4','5','6'].forEach((day,idx)=>{ const el=document.getElementById('quote_day_'+day); if(el) el.textContent=picks[idx+3] || picks[idx] || ''; }); }
+function getCachedPhrases(){ try{ const raw=localStorage.getItem(PHRASES_CACHE_KEY); const arr=JSON.parse(raw||'[]'); return Array.isArray(arr) ? arr.filter(x=>typeof x==='string' && x.trim()) : []; }catch(e){ return []; } }
+function setCachedPhrases(arr){ try{ localStorage.setItem(PHRASES_CACHE_KEY, JSON.stringify(asArr(arr).slice(0,500))); }catch(e){} }
+async function loadLandingPhrases(){ try{ const resp=await fetch('frases_aj_milao.txt', { cache:'no-store' }); if(!resp.ok) throw new Error('txt not found'); const txt=await resp.text(); const parsed=parsePhrasesFromTxt(txt); landingPhrases=parsed.length?parsed:FALLBACK_PHRASES; if(parsed.length) setCachedPhrases(parsed); }catch(e){ const cached=getCachedPhrases(); landingPhrases=cached.length?cached:FALLBACK_PHRASES; } renderLandingPhrases(); }
+function notificationsSupported(){ return 'Notification' in window; }
+function notificationStatusText(){ if(!notificationsSupported()) return 'Este browser não suporta notificações.'; if(Notification.permission==='granted') return 'Notificações ativas.'; if(Notification.permission==='denied') return 'Notificações bloqueadas no browser.'; return 'Notificações por ativar.'; }
+function renderNotificationStatus(){ const status=document.getElementById('notifStatus'); const btn=document.getElementById('notifBtn'); if(status) status.textContent=notificationStatusText(); if(btn){ btn.disabled=!notificationsSupported() || Notification.permission==='granted'; btn.textContent=Notification.permission==='granted' ? 'Notificações ativas' : 'Ativar notificações'; } }
+function canNotify(){ return notificationsSupported() && Notification.permission==='granted'; }
+function pushNotification(title, body){ if(!canNotify()) return; try{ new Notification(title,{ body:String(body||''), tag:'milao-aj', renotify:false }); }catch(e){} }
+async function enableNotifications(){ if(!notificationsSupported()){ renderNotificationStatus(); return; } try{ const p=await Notification.requestPermission(); renderNotificationStatus(); if(p==='granted') maybeSendNightPhraseNotification(); }catch(e){ renderNotificationStatus(); } }
+function isNightWindow(){ const h=new Date().getHours(); return h>=22 || h<5; }
+function phraseHourKey(){ const d=new Date(); return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}-${d.getHours()}`; }
+function maybeSendNightPhraseNotification(){ if(!canNotify() || !isNightWindow()) return; state.notificationMeta=asObj(state.notificationMeta); const key=phraseHourKey(); if(state.notificationMeta.lastPhraseHour===key) return; const phrase=randomPhrases(1)[0] || 'AJ tem a palavra.'; pushNotification('Frase AJ da noite', phrase); state.notificationMeta.lastPhraseHour=key; saveState(); }
+function startNotificationLoop(){ if(notifTimer) clearInterval(notifTimer); notifTimer=setInterval(maybeSendNightPhraseNotification, 60000); maybeSendNightPhraseNotification(); }
+function getTonightDay(){ return isValidDay(state.tonightDay) ? String(state.tonightDay) : '4'; }
+function setTonightDay(day){ if(!isValidDay(day)) return; state.tonightDay=String(day); saveState(); renderTonight(); }
+function getExpenseDay(){ return isValidDay(state.expenseDay) ? String(state.expenseDay) : '4'; }
+function setExpenseDay(day){ if(!isValidDay(day)) return; state.expenseDay=String(day); saveState(); renderExpenses(); }
+function optionLinksById(id){ const opt=document.querySelector(`.opt[data-id="${id}"]`); if(!opt) return []; let links=[]; try{ links=JSON.parse(opt.dataset.links||'[]'); }catch(e){} return asArr(links).map(l=>({ label:normalizeText(asObj(l).label||'Link',60), url:sanitizeUrl(asObj(l).url) })).filter(l=>l.url); }
+function renderTonight(){ const day=getTonightDay(); const daySelect=document.getElementById('tonightDaySelect'); if(daySelect && daySelect.value!==day) daySelect.value=day; const plan=document.getElementById('tonightPlanCard'); const linksBox=document.getElementById('tonightLinks'); if(plan && linksBox){ const r=ranked(day)[0]; if(!r){ plan.innerHTML=`<div><b>Dia ${day}</b> — sem votos ainda</div>`; linksBox.innerHTML=''; }else{ plan.innerHTML=`<div><b>Dia ${day}</b> — ${escapeHtml(r.title)}</div><div class="small">Zona: ${escapeHtml(r.area)} • Logística: ${escapeHtml(r.transport)} • ${r.votes} votos</div>`; linksBox.innerHTML=''; optionLinksById(r.id).forEach(l=>{ const d=document.createElement('div'); d.className='link-item'; d.innerHTML=`<span>${escapeHtml(l.label)}</span><a href="${escapeHtml(l.url)}" target="_blank" rel="noopener noreferrer">Abrir ↗</a>`; linksBox.appendChild(d); }); if(!linksBox.children.length){ const d=document.createElement('div'); d.className='link-item'; d.innerHTML='<span>Sem links para esta opção</span>'; linksBox.appendChild(d); } } } renderCheckins(); }
+function setCheckIn(status){ if(!currentUser){ alert('Mete nome primeiro.'); return; } const day=getTonightDay(); state.checkins[day]=asObj(state.checkins[day]); if(status==='clear'){ delete state.checkins[day][currentUser]; } else if(VALID_CHECKIN_STATUS.has(status)){ state.checkins[day][currentUser]=status; } else return; saveState(); renderCheckins(); }
+function checkinLabel(status){ if(status==='going') return 'a caminho'; if(status==='arrived') return 'cheguei'; if(status==='skip') return 'não vou'; return 'sem estado'; }
+function renderCheckins(){ const day=getTonightDay(); const map=asObj(state.checkins[day]); const names=Object.keys(state.users||{}).sort((a,b)=>a.localeCompare(b)); const counts={going:0,arrived:0,skip:0}; Object.values(map).forEach(s=>{ if(counts[s]!==undefined) counts[s]++; }); const summary=document.getElementById('checkinSummary'); if(summary) summary.innerHTML=`<div><b>Dia ${day}</b> — a caminho: ${counts.going} • cheguei: ${counts.arrived} • não vou: ${counts.skip}</div>`; const list=document.getElementById('checkinList'); if(!list) return; list.innerHTML=''; if(!names.length){ list.innerHTML='<div class="small">Sem pessoas registadas ainda.</div>'; return; } names.forEach(name=>{ const status=map[name]||''; const item=document.createElement('div'); item.className='comment-item'; item.innerHTML=`<div class="comment-head"><strong>${escapeHtml(name)}</strong><span class="pill">${escapeHtml(checkinLabel(status))}</span></div>`; list.appendChild(item); }); }
+function addExpense(){ const day=getExpenseDay(); const payerRaw=document.getElementById('expensePayer').value; const labelRaw=document.getElementById('expenseLabel').value; const amountRaw=document.getElementById('expenseAmount').value; const payer=normalizeName(payerRaw || currentUser || ''); const label=normalizeText(labelRaw,120); const amount=Number(String(amountRaw??'').replace(',','.')); if(!payer){ alert('Mete quem pagou.'); return; } if(!label){ alert('Mete descrição da despesa.'); return; } if(!Number.isFinite(amount) || amount<=0){ alert('Montante inválido.'); return; } ensureUser(payer); state.expenses.unshift({ id:'e_'+Date.now()+'_'+Math.floor(Math.random()*999), day, payer, label, amount:Math.round(amount*100)/100, ts:new Date().toLocaleString('pt-PT') }); document.getElementById('expenseLabel').value=''; document.getElementById('expenseAmount').value=''; saveState(); renderExpenses(); pushNotification('Nova despesa registada', `${payer}: ${formatEur(amount)} — ${label}`); }
+function removeExpense(id){ state.expenses=(state.expenses||[]).filter(e=>e.id!==id); saveState(); renderExpenses(); }
+function formatEur(v){ return `${(Math.round(v*100)/100).toFixed(2)}€`; }
+function toCents(v){ return Math.round((Number(v)||0)*100); }
+function buildSettlement(users, paidBy, total){ const lines=[]; if(!users.length || total<=0) return lines; const shareCents=Math.round((total*100)/users.length); const creditors=[]; const debtors=[]; users.forEach(u=>{ const paidCents=toCents(paidBy[u]||0); const net=paidCents-shareCents; if(net>0) creditors.push({user:u, cents:net}); if(net<0) debtors.push({user:u, cents:-net}); }); creditors.sort((a,b)=>b.cents-a.cents); debtors.sort((a,b)=>b.cents-a.cents); let i=0,j=0; while(i<debtors.length && j<creditors.length){ const d=debtors[i], c=creditors[j]; const pay=Math.min(d.cents,c.cents); if(pay>0) lines.push({from:d.user,to:c.user,amount:pay/100}); d.cents-=pay; c.cents-=pay; if(d.cents===0) i++; if(c.cents===0) j++; } return lines; }
+function removeParticipant(name){ const n=normalizeName(name); if(!n || !state.users[n]) return; if(!confirm(`Remover ${n} e limpar votos, check-ins e despesas desse participante?`)) return; delete state.users[n]; VALID_DAYS.forEach(day=>{ state.checkins[day]=asObj(state.checkins[day]); delete state.checkins[day][n]; }); state.expenses=asArr(state.expenses).filter(e=>normalizeName(e.payer)!==n); if(currentUser===n){ currentUser=null; document.getElementById('currentUser').textContent='—'; document.getElementById('gate').classList.remove('hidden'); } saveState(); renderAll(); }
+function renderParticipants(){ const box=document.getElementById('participantsList'); if(!box) return; const users=Object.keys(state.users||{}).sort((a,b)=>a.localeCompare(b)); box.innerHTML=''; if(!users.length){ box.innerHTML='<div class="small">Sem participantes.</div>'; return; } users.forEach(u=>{ const dayVotes=Object.keys(asObj(asObj(state.users[u]).choices)).length; const paid=asArr(state.expenses).filter(e=>normalizeName(e.payer)===u).reduce((s,e)=>s+(Number(e.amount)||0),0); const div=document.createElement('div'); div.className='comment-item'; div.innerHTML=`<div class="comment-head"><strong>${escapeHtml(u)}</strong><span class="pill">${dayVotes} votos • ${formatEur(paid)}</span></div>`; const rm=document.createElement('button'); rm.textContent='Remover participante'; rm.style.marginTop='8px'; rm.onclick=()=>removeParticipant(u); div.appendChild(rm); box.appendChild(div); }); }
+function renderExpenses(){ const day=getExpenseDay(); const daySelect=document.getElementById('expenseDaySelect'); if(daySelect && daySelect.value!==day) daySelect.value=day; const payerInput=document.getElementById('expensePayer'); if(payerInput && !payerInput.value && currentUser) payerInput.value=currentUser; const expenses=asArr(state.expenses); const dayItems=expenses.filter(e=>String(e.day)===day); const dayTotal=dayItems.reduce((s,e)=>s+(Number(e.amount)||0),0); const total=expenses.reduce((s,e)=>s+(Number(e.amount)||0),0); const users=Object.keys(state.users||{}); const paidBy={}; expenses.forEach(e=>{ paidBy[e.payer]=(paidBy[e.payer]||0)+(Number(e.amount)||0); }); const summary=document.getElementById('expenseSummary'); if(summary){ let html=`<div><b>Dia ${day}</b>: ${formatEur(dayTotal)} • Total viagem: ${formatEur(total)}</div>`; if(users.length){ const share=total/users.length; html+=`<div class="small">Divisão igual (${users.length} pessoas): ${formatEur(share)} por pessoa</div>`; users.forEach(u=>{ const net=(paidBy[u]||0)-share; html+=`<div class="small">${escapeHtml(u)}: pagou ${formatEur(paidBy[u]||0)} • saldo ${net>=0?'+':''}${formatEur(net)}</div>`; }); } summary.innerHTML=html; } const settlement=document.getElementById('expenseSettlement'); if(settlement){ const transfers=buildSettlement(users, paidBy, total); if(!transfers.length){ settlement.innerHTML='<div><b>Acertos finais</b></div><div class="small">Sem acertos pendentes.</div>'; } else { let html='<div><b>Acertos finais (quem manda a quem)</b></div>'; transfers.forEach(t=>{ html+=`<div class="small">${escapeHtml(t.from)} manda ${formatEur(t.amount)} a ${escapeHtml(t.to)}</div>`; }); settlement.innerHTML=html; } } const list=document.getElementById('expenseList'); if(!list) return; list.innerHTML=''; if(!dayItems.length){ list.innerHTML='<div class="small">Sem despesas neste dia.</div>'; renderParticipants(); return; } dayItems.forEach(e=>{ const item=document.createElement('div'); item.className='comment-item'; item.innerHTML=`<div class="comment-head"><strong>${escapeHtml(e.label)}</strong><span class="pill">${formatEur(Number(e.amount)||0)}</span></div><div class="small" style="margin-top:6px">Pagou: ${escapeHtml(e.payer)} • ${escapeHtml(e.ts||'')}</div>`; const rm=document.createElement('button'); rm.textContent='Remover'; rm.style.marginTop='8px'; rm.onclick=()=>removeExpense(e.id); item.appendChild(rm); list.appendChild(item); }); renderParticipants(); }
+function switchTab(tab){ const safeTab=normalizeTab(tab); state.activeTab=safeTab; document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===safeTab)); document.getElementById('tab-planner').classList.toggle('hidden', safeTab!=='planner'); document.getElementById('tab-tonight').classList.toggle('hidden', safeTab!=='tonight'); document.getElementById('tab-expenses').classList.toggle('hidden', safeTab!=='expenses'); document.getElementById('tab-results').classList.toggle('hidden', safeTab!=='results'); document.getElementById('tab-discussion').classList.toggle('hidden', safeTab!=='discussion'); saveState(); if(safeTab==='tonight') renderTonight(); if(safeTab==='expenses') renderExpenses(); }
+function exportTxt(){ const out=[]; out.push('MILAO AJ PLANNER'); out.push('Votantes: '+Object.keys(state.users||{}).length); out.push('Votos: '+votesCount()); out.push(''); [4,5,6].forEach(day=>{ out.push('Dia '+day); ranked(day).forEach((r,i)=> out.push(`${i+1}. ${r.title} | ${r.votes} votos | min ${r.budgetmin}€ | ${r.area}`)); out.push(''); }); out.push('Meeting point: '+(state.notes.meetingPoint||'')); out.push('Navigator: '+(state.notes.navigator||'')); out.push('Budget: '+(state.notes.budget||'')); out.push('Notas: '+(state.notes.notes||'')); out.push(''); const total=asArr(state.expenses).reduce((s,e)=>s+(Number(e.amount)||0),0); out.push('DESPESAS'); out.push('Total: '+formatEur(total)); const users=Object.keys(state.users||{}); const paidBy={}; asArr(state.expenses).forEach(e=>{ paidBy[e.payer]=(paidBy[e.payer]||0)+(Number(e.amount)||0); }); if(users.length){ const share=total/users.length; out.push(`Divisão igual (${users.length}): ${formatEur(share)} por pessoa`); users.forEach(u=>{ const net=(paidBy[u]||0)-share; out.push(`${u}: pagou ${formatEur(paidBy[u]||0)} | saldo ${net>=0?'+':''}${formatEur(net)}`); }); const transfers=buildSettlement(users, paidBy, total); out.push(''); out.push('ACERTOS FINAIS'); if(!transfers.length) out.push('Sem acertos pendentes.'); else transfers.forEach(t=> out.push(`${t.from} manda ${formatEur(t.amount)} a ${t.to}`)); } downloadBlob(new Blob([out.join('\n')],{type:'text/plain;charset=utf-8'}),'milao-aj-resumo.txt'); }
+function exportJson(){ downloadBlob(new Blob([JSON.stringify({version:1,state},null,2)],{type:'application/json'}),'milao-aj-votos.json'); }
+function importJson(){ const inp=document.createElement('input'); inp.type='file'; inp.accept='.json,application/json'; inp.onchange=async()=>{ const f=inp.files&&inp.files[0]; if(!f) return; try{ const raw=JSON.parse(await f.text()); const s=asObj(raw.state||raw); state=normalizeState(s); saveState(); hydrateNotes(); renderAll(); switchTab(state.activeTab||'planner'); alert('Importado.'); }catch(e){ alert('Erro a importar.'); } }; inp.click(); }
+function resetAll(){ if(!confirm('Apagar tudo neste dispositivo?')) return; try{ localStorage.removeItem(KEY); }catch(e){} state=defaultState(); currentUser=null; document.getElementById('currentUser').textContent='—'; document.getElementById('gate').classList.remove('hidden'); hydrateNotes(); renderAll(); switchTab('planner'); }
+function renderAll(){ renderOptions(); renderIdeas(); renderSidebar(); renderResultsTab(); renderDiscussion(); renderTonight(); renderExpenses(); renderLandingPhrases(); renderNotificationStatus(); }
+function escapeHtml(s){ return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function downloadBlob(blob, filename){ const a=document.createElement('a'); const u=URL.createObjectURL(blob); a.href=u; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(u); }
+window.addEventListener('keydown', e=>{ if(!document.getElementById('gate').classList.contains('hidden') && e.key==='Enter') enterApp(); });
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') maybeSendNightPhraseNotification(); });
+switchTab(state.activeTab||'planner'); renderAll(); loadLandingPhrases(); startNotificationLoop();
+</script>
+</body>
+</html>
